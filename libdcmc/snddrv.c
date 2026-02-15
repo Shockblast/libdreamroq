@@ -26,6 +26,20 @@
 #include <string.h>
 #include "snddrv.h"
 
+// Rename symbols to avoid conflict with KallistiOS core
+#define snd_stream_init           roq_snd_stream_init
+#define snd_stream_shutdown       roq_snd_stream_shutdown
+#define snd_stream_destroy        roq_snd_stream_destroy
+#define snd_stream_set_callback   roq_snd_stream_set_callback
+#define snd_stream_queue_enable   roq_snd_stream_queue_enable
+#define snd_stream_queue_disable  roq_snd_stream_queue_disable
+#define snd_stream_start          roq_snd_stream_start
+#define snd_stream_stop           roq_snd_stream_stop
+#define snd_stream_poll           roq_snd_stream_poll
+#define snd_stream_volume         roq_snd_stream_volume
+#define snd_stream_alloc          roq_snd_stream_alloc
+#define snd_stream_callback_t     roq_snd_stream_callback_t
+
 snd_stream_hnd_t shnd;
 kthread_t * snddrv_thd;
 static int snddrv_vol = 255;
