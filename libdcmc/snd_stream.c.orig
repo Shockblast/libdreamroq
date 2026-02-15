@@ -28,20 +28,6 @@
 #include <dc/sound/stream.h>
 #include <dc/sound/sfxmgr.h>
 
-// Rename symbols to avoid conflict with KallistiOS core
-#define snd_stream_init           roq_snd_stream_init
-#define snd_stream_shutdown       roq_snd_stream_shutdown
-#define snd_stream_destroy        roq_snd_stream_destroy
-#define snd_stream_set_callback   roq_snd_stream_set_callback
-#define snd_stream_queue_enable   roq_snd_stream_queue_enable
-#define snd_stream_queue_disable  roq_snd_stream_queue_disable
-#define snd_stream_start          roq_snd_stream_start
-#define snd_stream_stop           roq_snd_stream_stop
-#define snd_stream_poll           roq_snd_stream_poll
-#define snd_stream_volume         roq_snd_stream_volume
-#define snd_stream_alloc          roq_snd_stream_alloc
-#define snd_stream_callback_t     roq_snd_stream_callback_t
-
 #include "arm/aica_cmd_iface.h"
 
 //CVSID("$Id: snd_stream.c,v 1.13 2003/03/09 01:26:37 bardtx Exp $");
