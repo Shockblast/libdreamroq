@@ -34,6 +34,23 @@ typedef int libdreamroq_snd_stream_hnd_t;
 typedef void * (*libdreamroq_snd_stream_callback_t)(libdreamroq_snd_stream_hnd_t hnd, int len, int * actual);
 typedef void (*libdreamroq_snd_stream_filter_t)(libdreamroq_snd_stream_hnd_t hnd, void *obj, int freq, int channels, void **buffer, int *samplecnt);
 
+// Prototypes
+int libdreamroq_snd_stream_init();
+void libdreamroq_snd_stream_shutdown();
+libdreamroq_snd_stream_hnd_t libdreamroq_snd_stream_alloc(libdreamroq_snd_stream_callback_t cb, int bufsize);
+int libdreamroq_snd_stream_reinit(libdreamroq_snd_stream_hnd_t hnd, libdreamroq_snd_stream_callback_t cb);
+void libdreamroq_snd_stream_destroy(libdreamroq_snd_stream_hnd_t hnd);
+void libdreamroq_snd_stream_set_callback(libdreamroq_snd_stream_hnd_t hnd, libdreamroq_snd_stream_callback_t cb);
+void libdreamroq_snd_stream_filter_add(libdreamroq_snd_stream_hnd_t hnd, libdreamroq_snd_stream_filter_t filtfunc, void * obj);
+void libdreamroq_snd_stream_filter_remove(libdreamroq_snd_stream_hnd_t hnd, libdreamroq_snd_stream_filter_t filtfunc, void * obj);
+void libdreamroq_snd_stream_queue_enable(libdreamroq_snd_stream_hnd_t hnd);
+void libdreamroq_snd_stream_queue_disable(libdreamroq_snd_stream_hnd_t hnd);
+void libdreamroq_snd_stream_start(libdreamroq_snd_stream_hnd_t hnd, uint32 freq, int st);
+void libdreamroq_snd_stream_stop(libdreamroq_snd_stream_hnd_t hnd);
+int libdreamroq_snd_stream_poll(libdreamroq_snd_stream_hnd_t hnd);
+void libdreamroq_snd_stream_volume(libdreamroq_snd_stream_hnd_t hnd, int vol);
+void libdreamroq_snd_stream_prefill(libdreamroq_snd_stream_hnd_t hnd);
+
 #include "arm/aica_cmd_iface.h"
 
 //CVSID("$Id: snd_stream.c,v 1.13 2003/03/09 01:26:37 bardtx Exp $");
