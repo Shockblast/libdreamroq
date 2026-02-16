@@ -26,21 +26,15 @@
 #include <string.h>
 #include "snddrv.h"
 
-// Rename symbols to avoid conflict with KallistiOS core
-#define snd_stream_init           roq_snd_stream_init
-#define snd_stream_shutdown       roq_snd_stream_shutdown
-#define snd_stream_destroy        roq_snd_stream_destroy
-#define snd_stream_set_callback   roq_snd_stream_set_callback
-#define snd_stream_queue_enable   roq_snd_stream_queue_enable
-#define snd_stream_queue_disable  roq_snd_stream_queue_disable
-#define snd_stream_start          roq_snd_stream_start
-#define snd_stream_stop           roq_snd_stream_stop
-#define snd_stream_poll           roq_snd_stream_poll
-#define snd_stream_volume         roq_snd_stream_volume
-#define snd_stream_alloc          roq_snd_stream_alloc
-#define snd_stream_callback_t     roq_snd_stream_callback_t
+// Local types to avoid conflicts
+typedef int roq_snd_stream_hnd_t;
+typedef void * (*roq_snd_stream_callback_t)(roq_snd_stream_hnd_t hnd, int len, int * actual);
 
-snd_stream_hnd_t shnd;
+// Define global structures
+struct snddrv snddrv;
+struct snddrv_song_info snd_sinfo;
+
+roq_snd_stream_hnd_t shnd;
 kthread_t * snddrv_thd;
 static int snddrv_vol = 255;
 
@@ -49,7 +43,7 @@ int snddrv_volume_up() {
 
     if( snddrv_vol <= 245 ) {
         snddrv_vol += 10;
-  	    snd_stream_volume(shnd, snddrv_vol);
+  	    roq_snd_stream_volume(shnd, snddrv_vol);
     }
     return snddrv_vol;
 }
@@ -59,7 +53,7 @@ int snddrv_volume_down() {
 
     if( snddrv_vol >= 10 ) {
         snddrv_vol -= 10;
-  	    snd_stream_volume(shnd, snddrv_vol);
+  	    roq_snd_stream_volume(shnd, snddrv_vol);
     }
     return snddrv_vol;
 }
@@ -88,7 +82,7 @@ int snddrv_exit() {
 }
 
 /* Signal how many samples the AICA needs, then wait for the deocder to produce them */
-static void *snddrv_callback(snd_stream_hnd_t hnd, int len, int * actual) {
+static void *snddrv_callback(roq_snd_stream_hnd_t hnd, int len, int * actual) {
 
     /* Signal the Decoder thread how many more samples are needed */
     snddrv.pcm_needed = len;
@@ -106,29 +100,30 @@ static void *snddrv_callback(snd_stream_hnd_t hnd, int len, int * actual) {
 
 }
 
-static int snddrv_thread() {
+static void *snddrv_thread(void *param) {
+    (void)param;
 
     printf("SNDDRV: Rate - %i, Channels - %i\n", snddrv.rate, snddrv.channels);
 
-	shnd = snd_stream_alloc(snddrv_callback, SND_STREAM_BUFFER_MAX/4);
+	shnd = roq_snd_stream_alloc(snddrv_callback, SND_STREAM_BUFFER_MAX/4);
 
-    snd_stream_start(shnd, snddrv.rate, snddrv.channels-1);
+    roq_snd_stream_start(shnd, snddrv.rate, snddrv.channels-1);
     snddrv.drv_status = SNDDRV_STATUS_STREAMING;
 
 	while( snddrv.drv_status != SNDDRV_STATUS_DONE && snddrv.drv_status != SNDDRV_STATUS_ERROR ) {
 
-		snd_stream_poll(shnd);
+		roq_snd_stream_poll(shnd);
 		thd_sleep(20);
 
 	}
     snddrv.drv_status = SNDDRV_STATUS_NULL;
 
-    snd_stream_destroy(shnd);
-	snd_stream_shutdown();
+    roq_snd_stream_destroy(shnd);
+	roq_snd_stream_shutdown();
 
     printf("SNDDRV: Finished\n");
 
-	return snddrv.drv_status;
+	return NULL;
 }
 
 /* Start the AICA Sound Stream Thread */
@@ -145,8 +140,7 @@ int snddrv_start( int rate, int chans ) {
 
     snddrv.drv_status = SNDDRV_STATUS_INITIALIZING;
 
-    snd_stream_init();
-     /*libdcmc/snddrv.c:136: warning: passing arg 1 of `thd_create' from incompatible pointer type  */ //Ian micheal 2020 warning
+    roq_snd_stream_init();
     snddrv_thd = thd_create(0, snddrv_thread, NULL );
 
     return snddrv.drv_status;

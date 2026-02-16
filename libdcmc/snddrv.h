@@ -46,7 +46,9 @@ struct snddrv {
        volatile int buf_status;
        unsigned int pcm_buffer[65536+16384];
        unsigned int *pcm_ptr;
-}snddrv;
+};
+
+extern struct snddrv snddrv;
 
 #define SNDDRV_FREE_STRUCT() { \
         snddrv.rate = snddrv.channels = snddrv.drv_status = \
@@ -63,7 +65,9 @@ struct snddrv_song_info {
      volatile float spos;
      int fsize;
      float slen;  
-}snd_sinfo;
+};
+
+extern struct snddrv_song_info snd_sinfo;
 
 #define SNDDRV_FREE_SINFO() { \
         sq_clr( snd_sinfo.artist, 128 ); \
