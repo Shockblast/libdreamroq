@@ -26,7 +26,7 @@
 static unsigned char *pcm_buf = NULL;
 static int pcm_size = 0;
 static int audio_init = 0;
-static mutex_t * pcm_mut;
+static mutex_t pcm_mut;
 
 /* Video Global variables */
 static pvr_ptr_t  textures[2];
@@ -38,7 +38,8 @@ static int        vid_width = 640;
 static int        vid_height = 480;
 static const float VIDEO_RATE = 30.0f; /* Video FPS */
 
-static void snd_thd(){
+static void * snd_thd(void *param){
+    (void)param;
     do
     {
         /* Wait for AICA Driver to request some samples */
@@ -54,13 +55,13 @@ static void snd_thd(){
         }
 
         /* Copy the Requested PCM Samples to the AICA Driver */
-        mutex_lock( pcm_mut );
-        memcpy( snddrv.pcm_buffer, pcm_buf, snddrv.pcm_needed );
+        mutex_lock(&pcm_mut);
+        memcpy(snddrv.pcm_buffer, pcm_buf, snddrv.pcm_needed);
 
         /* Shift the Remaining PCM Samples Back */
         pcm_size -= snddrv.pcm_needed;
-        memmove( pcm_buf, pcm_buf+snddrv.pcm_needed, pcm_size );
-        mutex_unlock( pcm_mut );
+        memmove(pcm_buf, pcm_buf+snddrv.pcm_needed, pcm_size);
+        mutex_unlock(&pcm_mut);
 
         /* Let the AICA Driver know the PCM samples are ready */
         snddrv.buf_status = SNDDRV_STATUS_HAVEBUF;
@@ -73,6 +74,7 @@ static void snd_thd(){
 int roq_set_size(int width, int height) {
   vid_width = width;
   vid_height = height;
+  return ROQ_SUCCESS;
 }
 
  int roq_render_cb(unsigned short *buf, int width, int height, int stride,
@@ -189,18 +191,18 @@ int roq_set_size(int width, int height) {
 
         /* Create a thread to stream the samples to the AICA */
         thd_create(0, snd_thd, NULL );
-
+        
         /* Create a mutex to handle the double-threaded buffer */
-        pcm_mut = mutex_create();
+        mutex_init(&pcm_mut, MUTEX_TYPE_NORMAL);
 
         audio_init=1;
     }
 
     /* Copy the decoded PCM samples to our local PCM buffer */
-    mutex_lock( pcm_mut );
-    memcpy(  pcm_buf+pcm_size, buf, size);
+    mutex_lock(&pcm_mut);
+    memcpy(pcm_buf+pcm_size, buf, size);
     pcm_size += size;
-    mutex_unlock( pcm_mut );
+    mutex_unlock(&pcm_mut);
 
     return ROQ_SUCCESS;
 }
@@ -217,6 +219,7 @@ int roq_set_size(int width, int height) {
  int roq_free_texture(){
   pvr_mem_free(textures[0]);
   pvr_mem_free(textures[1]);
+  return ROQ_SUCCESS;
 }
 
  int roq_free_audio() {
@@ -228,7 +231,7 @@ int roq_set_size(int width, int height) {
     free( pcm_buf );
     pcm_buf = NULL;
     pcm_size = 0;
-    mutex_destroy(pcm_mut);                  /* Destroy the PCM mutex */
+    mutex_destroy(&pcm_mut);                  /* Destroy the PCM mutex */
     snddrv_exit();                           /* Exit the AICA Driver */
     audio_init = 0;
   }
