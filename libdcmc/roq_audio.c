@@ -30,26 +30,26 @@
 
 
 // Local types to avoid conflicts with KOS
-typedef int dr_snd_stream_hnd_t;
-typedef void * (*dr_snd_stream_callback_t)(dr_snd_stream_hnd_t hnd, int len, int * actual);
-typedef void (*dr_snd_stream_filter_t)(dr_snd_stream_hnd_t hnd, void *obj, int freq, int channels, void **buffer, int *samplecnt);
+typedef int roq_snd_stream_hnd_t;
+typedef void * (*roq_snd_stream_callback_t)(roq_snd_stream_hnd_t hnd, int len, int * actual);
+typedef void (*roq_snd_stream_filter_t)(roq_snd_stream_hnd_t hnd, void *obj, int freq, int channels, void **buffer, int *samplecnt);
 
 // Prototypes
-int dr_snd_stream_init();
-void dr_snd_stream_shutdown();
-dr_snd_stream_hnd_t dr_snd_stream_alloc(dr_snd_stream_callback_t cb, int bufsize);
-int dr_snd_stream_reinit(dr_snd_stream_hnd_t hnd, dr_snd_stream_callback_t cb);
-void dr_snd_stream_destroy(dr_snd_stream_hnd_t hnd);
-void dr_snd_stream_set_callback(dr_snd_stream_hnd_t hnd, dr_snd_stream_callback_t cb);
-void dr_snd_stream_filter_add(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t filtfunc, void * obj);
-void dr_snd_stream_filter_remove(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t filtfunc, void * obj);
-void dr_snd_stream_queue_enable(dr_snd_stream_hnd_t hnd);
-void dr_snd_stream_queue_disable(dr_snd_stream_hnd_t hnd);
-void dr_snd_stream_start(dr_snd_stream_hnd_t hnd, uint32 freq, int st);
-void dr_snd_stream_stop(dr_snd_stream_hnd_t hnd);
-int dr_snd_stream_poll(dr_snd_stream_hnd_t hnd);
-void dr_snd_stream_volume(dr_snd_stream_hnd_t hnd, int vol);
-void dr_snd_stream_prefill(dr_snd_stream_hnd_t hnd);
+int roq_snd_stream_init();
+void roq_snd_stream_shutdown();
+roq_snd_stream_hnd_t roq_snd_stream_alloc(roq_snd_stream_callback_t cb, int bufsize);
+int roq_snd_stream_reinit(roq_snd_stream_hnd_t hnd, roq_snd_stream_callback_t cb);
+void roq_snd_stream_destroy(roq_snd_stream_hnd_t hnd);
+void roq_snd_stream_set_callback(roq_snd_stream_hnd_t hnd, roq_snd_stream_callback_t cb);
+void roq_snd_stream_filter_add(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t filtfunc, void * obj);
+void roq_snd_stream_filter_remove(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t filtfunc, void * obj);
+void roq_snd_stream_queue_enable(roq_snd_stream_hnd_t hnd);
+void roq_snd_stream_queue_disable(roq_snd_stream_hnd_t hnd);
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st);
+void roq_snd_stream_stop(roq_snd_stream_hnd_t hnd);
+int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd);
+void roq_snd_stream_volume(roq_snd_stream_hnd_t hnd, int vol);
+void roq_snd_stream_prefill(roq_snd_stream_hnd_t hnd);
 
 #include "arm/aica_cmd_iface.h"
 
@@ -71,7 +71,7 @@ being available CPU time and channels.
 
 typedef struct filter {
 	TAILQ_ENTRY(filter)	lent;
-	dr_snd_stream_filter_t	func;
+	roq_snd_stream_filter_t	func;
 	void			* data;
 } filter_t;
 
@@ -92,7 +92,7 @@ typedef struct strchan {
 
 	// "Get data" callback; we'll call this any time we want to get
 	// another buffer of output data.
-	dr_snd_stream_callback_t get_data;
+	roq_snd_stream_callback_t get_data;
 
 	// Our list of filter callback functions for this stream
 	TAILQ_HEAD(filterlist, filter) filters;
@@ -127,12 +127,12 @@ int16 * sep_buffer[2] = { NULL, NULL };
 } while(0)
 
 /* Set "get data" callback */
-void dr_snd_stream_set_callback(dr_snd_stream_hnd_t hnd, dr_snd_stream_callback_t cb) {
+void roq_snd_stream_set_callback(roq_snd_stream_hnd_t hnd, roq_snd_stream_callback_t cb) {
 	CHECK_HND(hnd);
 	streams[hnd].get_data = cb;
 }
 
-void dr_snd_stream_filter_add(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t filtfunc, void * obj) {
+void roq_snd_stream_filter_add(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t filtfunc, void * obj) {
 	filter_t * f;
 
 	CHECK_HND(hnd);
@@ -143,7 +143,7 @@ void dr_snd_stream_filter_add(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t fi
 	TAILQ_INSERT_TAIL(&streams[hnd].filters, f, lent);
 }
 
-void dr_snd_stream_filter_remove(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t filtfunc, void * obj) {
+void roq_snd_stream_filter_remove(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t filtfunc, void * obj) {
 	filter_t * f;
 
 	CHECK_HND(hnd);
@@ -157,7 +157,7 @@ void dr_snd_stream_filter_remove(dr_snd_stream_hnd_t hnd, dr_snd_stream_filter_t
 	}
 }
 
-static void process_filters(dr_snd_stream_hnd_t hnd, void **buffer, int *samplecnt) {
+static void process_filters(roq_snd_stream_hnd_t hnd, void **buffer, int *samplecnt) {
 	filter_t * f;
 
 	TAILQ_FOREACH(f, &streams[hnd].filters, lent) {
@@ -196,7 +196,7 @@ static void sep_data(void *buffer, int len, int stereo) {
 }
 
 /* Prefill buffers -- do this before calling start() */
-void dr_snd_stream_prefill(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_prefill(roq_snd_stream_hnd_t hnd) {
 	void *buf;
 	int got;
 
@@ -240,7 +240,7 @@ void dr_snd_stream_prefill(dr_snd_stream_hnd_t hnd) {
 }
 
 /* Initialize stream system */
-int dr_snd_stream_init() {
+int roq_snd_stream_init() {
 	/* Create stereo seperation buffers */
 	if (!sep_buffer[0]) {
 		sep_buffer[0] = memalign(32, (SND_STREAM_BUFFER_MAX/2));
@@ -249,16 +249,16 @@ int dr_snd_stream_init() {
 
 	/* Finish loading the stream driver */
 	if (snd_init() < 0) {
-		dbglog(DBG_ERROR, "dr_snd_stream_init(): snd_init() failed, giving up\n");
+		dbglog(DBG_ERROR, "roq_snd_stream_init(): snd_init() failed, giving up\n");
 		return -1;
 	}
 
 	return 0;
 }
 
-dr_snd_stream_hnd_t dr_snd_stream_alloc(dr_snd_stream_callback_t cb, int bufsize) {
+roq_snd_stream_hnd_t roq_snd_stream_alloc(roq_snd_stream_callback_t cb, int bufsize) {
 	int i, old;
-	dr_snd_stream_hnd_t hnd;
+	roq_snd_stream_hnd_t hnd;
 
 	// Get an unused handle
 	hnd = -1;
@@ -282,7 +282,7 @@ dr_snd_stream_hnd_t dr_snd_stream_alloc(dr_snd_stream_callback_t cb, int bufsize
 	streams[hnd].queueing = 0;
 
 	/* Setup the callback */
-	dr_snd_stream_set_callback(hnd, cb);
+	roq_snd_stream_set_callback(hnd, cb);
 
 	/* Initialize our filter chain list */
 	TAILQ_INIT(&streams[hnd].filters);
@@ -299,19 +299,19 @@ dr_snd_stream_hnd_t dr_snd_stream_alloc(dr_snd_stream_callback_t cb, int bufsize
 	return hnd;
 }
 
-int dr_snd_stream_reinit(dr_snd_stream_hnd_t hnd, dr_snd_stream_callback_t cb) {
+int roq_snd_stream_reinit(roq_snd_stream_hnd_t hnd, roq_snd_stream_callback_t cb) {
 	CHECK_HND(hnd);
 
 	/* Start off with queueing disabled */
 	streams[hnd].queueing = 0;
 
 	/* Setup the callback */
-	dr_snd_stream_set_callback(hnd, cb);
+	roq_snd_stream_set_callback(hnd, cb);
 
 	return hnd;
 }
 
-void dr_snd_stream_destroy(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_destroy(roq_snd_stream_hnd_t hnd) {
 	filter_t * c, * n;
 
 	CHECK_HND(hnd);
@@ -330,18 +330,18 @@ void dr_snd_stream_destroy(dr_snd_stream_hnd_t hnd) {
 	}
 	TAILQ_INIT(&streams[hnd].filters);
 
-	dr_snd_stream_stop(hnd);
+	roq_snd_stream_stop(hnd);
 	snd_mem_free(streams[hnd].spu_ram_sch[0]);
 	memset(streams+hnd, 0, sizeof(streams[0]));
 }
 
 /* Shut everything down and free mem */
-void dr_snd_stream_shutdown() {
+void roq_snd_stream_shutdown() {
 	/* Stop and destroy all active stream */
 	int i;
 	for (i=0; i<SND_STREAM_MAX; i++) {
 		if (streams[i].initted)
-			dr_snd_stream_destroy(i);
+			roq_snd_stream_destroy(i);
 	}
 
 	/* Free global buffers */
@@ -352,18 +352,18 @@ void dr_snd_stream_shutdown() {
 }
 
 /* Enable / disable stream queueing */
-void dr_snd_stream_queue_enable(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_queue_enable(roq_snd_stream_hnd_t hnd) {
 	CHECK_HND(hnd);
 	streams[hnd].queueing = 1;
 }
 
-void dr_snd_stream_queue_disable(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_queue_disable(roq_snd_stream_hnd_t hnd) {
 	CHECK_HND(hnd);
 	streams[hnd].queueing = 0;
 }
 
 /* Start streaming (or if queueing is enabled, just get ready) */
-void dr_snd_stream_start(dr_snd_stream_hnd_t hnd, uint32 freq, int st) {
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st) {
 	AICA_CMDSTR_CHANNEL(tmp, cmd, chan);
 
 	CHECK_HND(hnd);
@@ -377,7 +377,7 @@ void dr_snd_stream_start(dr_snd_stream_hnd_t hnd, uint32 freq, int st) {
 	snd_sh4_to_aica_stop();
 
 	/* Prefill buffers */
-	dr_snd_stream_prefill(hnd);
+	roq_snd_stream_prefill(hnd);
 
 	/* Channel 0 */
 	cmd->cmd = AICA_CMD_CHAN;
@@ -414,13 +414,13 @@ void dr_snd_stream_start(dr_snd_stream_hnd_t hnd, uint32 freq, int st) {
 }
 
 /* Actually make it go (in queued mode) */
-void dr_snd_stream_queue_go(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_queue_go(roq_snd_stream_hnd_t hnd) {
 	CHECK_HND(hnd);
 	snd_sh4_to_aica_start();
 }
 
 /* Stop streaming */
-void dr_snd_stream_stop(dr_snd_stream_hnd_t hnd) {
+void roq_snd_stream_stop(roq_snd_stream_hnd_t hnd) {
 	AICA_CMDSTR_CHANNEL(tmp, cmd, chan);
 
 	CHECK_HND(hnd);
@@ -448,7 +448,7 @@ static void dma_chain(ptr_t data) {
 } */
 
 /* Poll streamer to load more data if neccessary */
-int dr_snd_stream_poll(dr_snd_stream_hnd_t hnd) {
+int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd) {
 	uint32		ch0pos, ch1pos;
 	int		realbuffer;
 	int		current_play_pos;
@@ -465,7 +465,7 @@ int dr_snd_stream_poll(dr_snd_stream_hnd_t hnd) {
 	ch1pos = g2_read_32(DREAMROQ_SPU_RAM_BASE + AICA_CHANNEL(streams[hnd].ch[1]) + offsetof(aica_channel_t, pos));
 
 	if (ch0pos >= (streams[hnd].buffer_size/2)) {
-		dbglog(DBG_ERROR, "dr_snd_stream_poll: chan0(%d).pos = %ld (%08lx)\n", streams[hnd].ch[0], ch0pos, ch0pos);
+		dbglog(DBG_ERROR, "roq_snd_stream_poll: chan0(%d).pos = %ld (%08lx)\n", streams[hnd].ch[0], ch0pos, ch0pos);
 		return -1;
 	}
 
@@ -529,7 +529,7 @@ int dr_snd_stream_poll(dr_snd_stream_hnd_t hnd) {
 }
 
 /* Set the volume on the streaming channels */
-void dr_snd_stream_volume(dr_snd_stream_hnd_t hnd, int vol) {
+void roq_snd_stream_volume(roq_snd_stream_hnd_t hnd, int vol) {
 	AICA_CMDSTR_CHANNEL(tmp, cmd, chan);
 
 	CHECK_HND(hnd);

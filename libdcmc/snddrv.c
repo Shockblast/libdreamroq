@@ -27,14 +27,14 @@
 #include "snddrv.h"
 
 // Local types to avoid conflicts
-typedef int dr_snd_stream_hnd_t;
-typedef void * (*dr_snd_stream_callback_t)(dr_snd_stream_hnd_t hnd, int len, int * actual);
+typedef int roq_snd_stream_hnd_t;
+typedef void * (*roq_snd_stream_callback_t)(roq_snd_stream_hnd_t hnd, int len, int * actual);
 
 // Define global structures
 struct snddrv snddrv;
 struct snddrv_song_info snd_sinfo;
 
-dr_snd_stream_hnd_t shnd;
+roq_snd_stream_hnd_t shnd;
 kthread_t * snddrv_thd;
 static int snddrv_vol = 255;
 
@@ -43,7 +43,7 @@ int snddrv_volume_up() {
 
     if( snddrv_vol <= 245 ) {
         snddrv_vol += 10;
-  	    dr_snd_stream_volume(shnd, snddrv_vol);
+  	    roq_snd_stream_volume(shnd, snddrv_vol);
     }
     return snddrv_vol;
 }
@@ -53,7 +53,7 @@ int snddrv_volume_down() {
 
     if( snddrv_vol >= 10 ) {
         snddrv_vol -= 10;
-  	    dr_snd_stream_volume(shnd, snddrv_vol);
+  	    roq_snd_stream_volume(shnd, snddrv_vol);
     }
     return snddrv_vol;
 }
@@ -82,7 +82,7 @@ int snddrv_exit() {
 }
 
 /* Signal how many samples the AICA needs, then wait for the deocder to produce them */
-static void *snddrv_callback(dr_snd_stream_hnd_t hnd, int len, int * actual) {
+static void *snddrv_callback(roq_snd_stream_hnd_t hnd, int len, int * actual) {
 
     /* Signal the Decoder thread how many more samples are needed */
     snddrv.pcm_needed = len;
@@ -105,21 +105,21 @@ static void *snddrv_thread(void *param) {
 
     printf("SNDDRV: Rate - %i, Channels - %i\n", snddrv.rate, snddrv.channels);
 
-	shnd = dr_snd_stream_alloc(snddrv_callback, SND_STREAM_BUFFER_MAX/4);
+	shnd = roq_snd_stream_alloc(snddrv_callback, SND_STREAM_BUFFER_MAX/4);
 
-    dr_snd_stream_start(shnd, snddrv.rate, snddrv.channels-1);
+    roq_snd_stream_start(shnd, snddrv.rate, snddrv.channels-1);
     snddrv.drv_status = SNDDRV_STATUS_STREAMING;
 
 	while( snddrv.drv_status != SNDDRV_STATUS_DONE && snddrv.drv_status != SNDDRV_STATUS_ERROR ) {
 
-		dr_snd_stream_poll(shnd);
+		roq_snd_stream_poll(shnd);
 		thd_sleep(20);
 
 	}
     snddrv.drv_status = SNDDRV_STATUS_NULL;
 
-    dr_snd_stream_destroy(shnd);
-	dr_snd_stream_shutdown();
+    roq_snd_stream_destroy(shnd);
+	roq_snd_stream_shutdown();
 
     printf("SNDDRV: Finished\n");
 
@@ -140,7 +140,7 @@ int snddrv_start( int rate, int chans ) {
 
     snddrv.drv_status = SNDDRV_STATUS_INITIALIZING;
 
-    dr_snd_stream_init();
+    roq_snd_stream_init();
     snddrv_thd = thd_create(0, snddrv_thread, NULL );
 
     return snddrv.drv_status;

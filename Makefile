@@ -7,7 +7,7 @@ OBJS += libdcmc/timer.o
 
 #AICA Audio Driver
 KOS_CFLAGS += -I. -Ilibdcmc/
-OBJS += libdcmc/snd_stream.o
+OBJS += libdcmc/roq_audio.o
 OBJS += libdcmc/snddrv.o
 
 all: rm-elf $(TARGET)
