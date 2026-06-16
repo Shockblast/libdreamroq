@@ -20,15 +20,26 @@
 */
 
 #include <kos/thread.h>
-#include <dc/sound/stream.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "snddrv.h"
 
 // Local types to avoid conflicts
+#ifndef SND_STREAM_BUFFER_MAX
+#define SND_STREAM_BUFFER_MAX (64 * 1024)
+#endif
 typedef int roq_snd_stream_hnd_t;
 typedef void * (*roq_snd_stream_callback_t)(roq_snd_stream_hnd_t hnd, int len, int * actual);
+
+// roq_snd_stream function prototypes (defined in roq_audio.c)
+int roq_snd_stream_init(void);
+void roq_snd_stream_shutdown(void);
+roq_snd_stream_hnd_t roq_snd_stream_alloc(roq_snd_stream_callback_t cb, int bufsize);
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st);
+void roq_snd_stream_destroy(roq_snd_stream_hnd_t hnd);
+int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd);
+void roq_snd_stream_volume(roq_snd_stream_hnd_t hnd, int vol);
 
 // Define global structures
 struct snddrv snddrv;
@@ -72,7 +83,7 @@ int snddrv_exit() {
         printf("SNDDRV: Exited\n");
     }
 
-    memset( snddrv.pcm_buffer, 0, 65536+16384);
+    memset( snddrv.pcm_buffer, 0, sizeof(snddrv.pcm_buffer));
     snddrv.pcm_bytes = 0;
     snddrv.pcm_needed = 0;
 

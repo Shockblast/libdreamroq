@@ -31,16 +31,24 @@ typedef int (*audio_callback)(unsigned char *buf, int samples, int channels);
  * Return non-zero if it's time to quite. */
 typedef int (*quit_callback)();
 
-extern "C" int roq_play(char *filename, int loop, render_callback render_cb,
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int roq_play(char *filename, int loop, render_callback render_cb,
                   audio_callback audio_cb, quit_callback quit_cb);
 
-extern "C" int roq_set_size(int width, int height);
+int roq_set_size(int width, int height);
 
-extern "C" int roq_render_cb(unsigned short *buf, int width, int height, int stride, int texture_height);
-extern "C" int roq_audio_cb(unsigned char *buf, int size, int channels);
-extern "C" int roq_quit_cb();
-extern "C" int roq_free_texture();
-extern "C" int roq_free_audio();
-extern "C" int free_variables();
+int roq_render_cb(unsigned short *buf, int width, int height, int stride, int texture_height);
+int roq_audio_cb(unsigned char *buf, int size, int channels);
+int roq_quit_cb();
+int roq_free_texture();
+int roq_free_audio();
+int free_variables();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* NEWROQ_H */

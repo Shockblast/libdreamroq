@@ -69,6 +69,8 @@ static void * snd_thd(void *param){
     } while( snddrv.dec_status == SNDDEC_STATUS_STREAMING );
     done:
     snddrv.dec_status = SNDDEC_STATUS_NULL;
+
+    return NULL;
 }
 
 int roq_set_size(int width, int height) {
@@ -208,16 +210,12 @@ int roq_set_size(int width, int height) {
 }
 
  int roq_quit_cb(){
-    cont_cond_t cont;
+    maple_device_t *cont;
+    cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
 
-    /* check controller state */
-    if (cont_get_cond(maple_first_controller(), &cont))
-    {
-        /* controller read error */
-        return 1;
-    }
-    cont.buttons = ~cont.buttons;
-    return (cont.buttons & CONT_START);
+    cont_state_t *state;
+    state = maple_dev_status(cont);
+    return (state->buttons & CONT_START);
 }
 
 int roq_free_texture(){
@@ -229,10 +227,10 @@ int roq_free_texture(){
 int free_variables() {
   current_frame = 0;
   graphics_initialized = 0;
-  video_delay;
-  frame=0;
+  frame = 0;
   vid_width = 320;
-  vid_height = 240;	
+  vid_height = 240;
+  return 0;
 }
 
  int roq_free_audio() {

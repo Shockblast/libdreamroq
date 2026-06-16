@@ -364,10 +364,8 @@ static int roq_unpack_vq(unsigned char *buf, int size, unsigned int arg,
 int roq_play(char *filename, int loop, render_callback render_cb,
                   audio_callback audio_cb, quit_callback quit_cb)
 {
-	pvr_init_defaults();
     FILE *f;
     size_t file_ret;
-    int framerate;
     int chunk_id;
     unsigned int chunk_size;
     unsigned int chunk_arg;
@@ -396,7 +394,6 @@ int roq_play(char *filename, int loop, render_callback render_cb,
         fclose(f);
         return ROQ_FILE_READ_FAILURE;
     }
-    framerate = LE_16(&read_buffer[6]);
 
     /* Initialize Audio SQRT Look-Up Table */
     for(i = 0; i < 128; i++)
@@ -571,7 +568,6 @@ int roq_play(char *filename, int loop, render_callback render_cb,
     roq_free_audio();
 	free_variables();
     fclose(f);
-	pvr_shutdown();
 
     return status;
 }
