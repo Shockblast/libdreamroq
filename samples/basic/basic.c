@@ -10,14 +10,15 @@
 */
 
 #include <stdio.h>
+#include <kos.h>
+#include <dc/video.h>
 #include <dreamroq/dreamroqlib.h>
 
-extern uint8 romdisk[];
+extern unsigned char romdisk[];
 KOS_INIT_ROMDISK(romdisk);
 
 int main() {
   vid_set_mode(DM_640x480, PM_RGB565);
-  pvr_init_defaults();
 
   roq_play( "/rd/video.roq",   // path to .roq file
             0,                // 1 = loop, 0 = no loop
