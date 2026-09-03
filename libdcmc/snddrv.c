@@ -36,7 +36,7 @@ typedef void * (*roq_snd_stream_callback_t)(roq_snd_stream_hnd_t hnd, int len, i
 int roq_snd_stream_init(void);
 void roq_snd_stream_shutdown(void);
 roq_snd_stream_hnd_t roq_snd_stream_alloc(roq_snd_stream_callback_t cb, int bufsize);
-void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st);
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32_t freq, int st);
 void roq_snd_stream_destroy(roq_snd_stream_hnd_t hnd);
 int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd);
 void roq_snd_stream_volume(roq_snd_stream_hnd_t hnd, int vol);

@@ -12,6 +12,9 @@ OBJS += libdcmc/snddrv.o
 
 all: rm-elf $(TARGET)
 
+rm-elf:
+	-rm -f $(TARGET)
+
 clean:
 	-rm -f $(TARGET) $(OBJS) output.bin
 
@@ -29,5 +32,5 @@ include $(KOS_BASE)/Makefile.rules
 include $(KOS_BASE)/addons/Makefile.prefab
 
 create_kos_link:
-	rm -f ../include/dreamroq
-	ln -s ../libdreamroq/include ../include/dreamroq
+	rm -f $(KOS_BASE)/include/dreamroq
+	ln -s $(CURDIR)/include $(KOS_BASE)/include/dreamroq

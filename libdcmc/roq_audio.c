@@ -45,7 +45,7 @@ void roq_snd_stream_filter_add(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t
 void roq_snd_stream_filter_remove(roq_snd_stream_hnd_t hnd, roq_snd_stream_filter_t filtfunc, void * obj);
 void roq_snd_stream_queue_enable(roq_snd_stream_hnd_t hnd);
 void roq_snd_stream_queue_disable(roq_snd_stream_hnd_t hnd);
-void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st);
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32_t freq, int st);
 void roq_snd_stream_stop(roq_snd_stream_hnd_t hnd);
 int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd);
 void roq_snd_stream_volume(roq_snd_stream_hnd_t hnd, int vol);
@@ -88,7 +88,7 @@ typedef struct strchan {
 	int	buffer_size;	// = 0x10000
 
 	// Stream data location in AICA RAM
-	uint32	spu_ram_sch[2];
+	uint32_t	spu_ram_sch[2];
 
 	// "Get data" callback; we'll call this any time we want to get
 	// another buffer of output data.
@@ -115,7 +115,7 @@ typedef struct strchan {
 static strchan_t streams[SND_STREAM_MAX] = { { { 0 } } };
 
 // Separation buffers (for stereo)
-int16 * sep_buffer[2] = { NULL, NULL };
+int16_t * sep_buffer[2] = { NULL, NULL };
 
 /* the address of the sound ram from the SH4 side */
 #define DREAMROQ_SPU_RAM_BASE            0xa0800000
@@ -169,11 +169,11 @@ static void process_filters(roq_snd_stream_hnd_t hnd, void **buffer, int *sample
 /* Performs stereo seperation for the two channels; this routine
    has been optimized for the SH-4. */
 static void sep_data(void *buffer, int len, int stereo) {
-	register int16	*bufsrc, *bufdst;
+	register int16_t	*bufsrc, *bufdst;
 	register int	x, y, cnt;
 
 	if (stereo) {
-		bufsrc = (int16*)buffer;
+		bufsrc = (int16_t*)buffer;
 		bufdst = sep_buffer[0];
 		x = 0; y = 0; cnt = len / 2;
 		do {
@@ -181,7 +181,7 @@ static void sep_data(void *buffer, int len, int stereo) {
 			bufdst++; bufsrc+=2; cnt--;
 		} while (cnt > 0);
 
-		bufsrc = (int16*)buffer; bufsrc++;
+		bufsrc = (int16_t*)buffer; bufsrc++;
 		bufdst = sep_buffer[1];
 		x = 1; y = 0; cnt = len / 2;
 		do {
@@ -215,10 +215,10 @@ void roq_snd_stream_prefill(roq_snd_stream_hnd_t hnd) {
 	sep_data(buf, (streams[hnd].buffer_size/2), streams[hnd].stereo);
 	spu_memload(
 		streams[hnd].spu_ram_sch[0] + (streams[hnd].buffer_size/2)*0,
-		(uint8*)sep_buffer[0], streams[hnd].buffer_size/2);
+		(uint8_t*)sep_buffer[0], streams[hnd].buffer_size/2);
 	spu_memload(
 		streams[hnd].spu_ram_sch[1] + (streams[hnd].buffer_size/2)*0,
-		(uint8*)sep_buffer[1], streams[hnd].buffer_size/2);
+		(uint8_t*)sep_buffer[1], streams[hnd].buffer_size/2);
 
 	/* Load second buffer */
 	if (streams[hnd].stereo)
@@ -229,10 +229,10 @@ void roq_snd_stream_prefill(roq_snd_stream_hnd_t hnd) {
 	sep_data(buf, (streams[hnd].buffer_size/2), streams[hnd].stereo);
 	spu_memload(
 		streams[hnd].spu_ram_sch[0] + (streams[hnd].buffer_size/2)*1,
-		(uint8*)sep_buffer[0], streams[hnd].buffer_size/2);
+		(uint8_t*)sep_buffer[0], streams[hnd].buffer_size/2);
 	spu_memload(
 		streams[hnd].spu_ram_sch[1] + (streams[hnd].buffer_size/2)*1,
-		(uint8*)sep_buffer[1], streams[hnd].buffer_size/2);
+		(uint8_t*)sep_buffer[1], streams[hnd].buffer_size/2);
 
 	/* Start with playing on buffer 0 */
 	streams[hnd].last_write_pos = 0;
@@ -362,7 +362,7 @@ void roq_snd_stream_queue_disable(roq_snd_stream_hnd_t hnd) {
 }
 
 /* Start streaming (or if queueing is enabled, just get ready) */
-void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32 freq, int st) {
+void roq_snd_stream_start(roq_snd_stream_hnd_t hnd, uint32_t freq, int st) {
 	AICA_CMDSTR_CHANNEL(tmp, cmd, chan);
 
 	CHECK_HND(hnd);
@@ -441,14 +441,14 @@ void roq_snd_stream_stop(roq_snd_stream_hnd_t hnd) {
 }
 
 /* The DMA will chain to this to start the second DMA. */
-/* static uint32 dmadest, dmacnt;
+/* static uint32_t dmadest, dmacnt;
 static void dma_chain(ptr_t data) {
 	spu_dma_transfer(sep_buffer[1], dmadest, dmacnt, 0, NULL, 0);
 } */
 
 /* Poll streamer to load more data if neccessary */
 int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd) {
-	uint32		ch0pos, ch1pos;
+	uint32_t		ch0pos, ch1pos;
 	int		realbuffer;
 	int		current_play_pos;
 	int		needed_samples;
@@ -508,8 +508,8 @@ int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd) {
 		}
 
 		sep_data(data, needed_samples * 2, streams[hnd].stereo);
-		spu_memload(streams[hnd].spu_ram_sch[0] + (streams[hnd].last_write_pos * 2), (uint8*)sep_buffer[0], needed_samples * 2);
-		spu_memload(streams[hnd].spu_ram_sch[1] + (streams[hnd].last_write_pos * 2), (uint8*)sep_buffer[1], needed_samples * 2);
+		spu_memload(streams[hnd].spu_ram_sch[0] + (streams[hnd].last_write_pos * 2), (uint8_t*)sep_buffer[0], needed_samples * 2);
+		spu_memload(streams[hnd].spu_ram_sch[1] + (streams[hnd].last_write_pos * 2), (uint8_t*)sep_buffer[1], needed_samples * 2);
 
 		// Second DMA will get started by the chain handler
 		/* dcache_flush_range(sep_buffer[0], needed_samples*2);

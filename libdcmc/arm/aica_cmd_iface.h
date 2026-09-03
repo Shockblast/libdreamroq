@@ -12,10 +12,7 @@
 
 /* $Id: aica_cmd_iface.h,v 1.3 2002/06/13 05:52:35 bardtx Exp $ */
 
-#ifndef __ARCH_TYPES_H
-typedef unsigned long uint8;
-typedef unsigned long uint32;
-#endif
+#include <stdint.h>
 
 /* Command queue; one of these for passing data from the SH-4 to the
    AICA, and another for the other direction. If a command is written
@@ -23,22 +20,22 @@ typedef unsigned long uint32;
    head point and the queue size, the command will wrap around to
    the beginning (i.e., queue commands _can_ be split up). */
 typedef struct aica_queue {
-	uint32		head;		/* Insertion point offset (in bytes)	*/
-	uint32		tail;		/* Removal point offset (in bytes)	*/
-	uint32		size;		/* Queue size (in bytes)		*/
-	uint32		valid;		/* 1 if the queue structs are valid	*/
-	uint32		process_ok;	/* 1 if it's ok to process the data	*/
-	uint32		data;		/* Pointer to queue data buffer		*/
+	uint32_t		head;		/* Insertion point offset (in bytes)	*/
+	uint32_t		tail;		/* Removal point offset (in bytes)	*/
+	uint32_t		size;		/* Queue size (in bytes)		*/
+	uint32_t		valid;		/* 1 if the queue structs are valid	*/
+	uint32_t		process_ok;	/* 1 if it's ok to process the data	*/
+	uint32_t		data;		/* Pointer to queue data buffer		*/
 } aica_queue_t;
 
 /* Command queue struct for commanding the AICA from the SH-4 */
 typedef struct aica_cmd {
-	uint32		size;		/* Command data size in dwords				*/
-	uint32		cmd;		/* Command ID						*/
-	uint32		timestamp;	/* When to execute the command (0 == now)		*/
-	uint32		cmd_id;		/* Command ID, for cmd/response pairs, or channel id	*/
-	uint32		misc[4];	/* Misc Parameters / Padding				*/
-	uint8		cmd_data[0];	/* Command data 					*/
+	uint32_t		size;		/* Command data size in dwords				*/
+	uint32_t		cmd;		/* Command ID						*/
+	uint32_t		timestamp;	/* When to execute the command (0 == now)		*/
+	uint32_t		cmd_id;		/* Command ID, for cmd/response pairs, or channel id	*/
+	uint32_t		misc[4];	/* Misc Parameters / Padding				*/
+	uint8_t		cmd_data[0];	/* Command data 					*/
 } aica_cmd_t;
 
 /* Maximum command size -- 256 dwords */
@@ -47,24 +44,24 @@ typedef struct aica_cmd {
 /* This is the cmd_data for AICA_CMD_CHAN. Make this 16 dwords long
    for two aica bus queues. */
 typedef struct aica_channel {
-	uint32		cmd;		/* Command ID		*/
-	uint32		base;		/* Sample base in RAM	*/
-	uint32		type;		/* (8/16bit/ADPCM)	*/
-	uint32		length;		/* Sample length	*/
-	uint32		loop;		/* Sample looping	*/
-	uint32		loopstart;	/* Sample loop start	*/
-	uint32		loopend;	/* Sample loop end	*/
-	uint32		freq;		/* Frequency		*/
-	uint32		vol;		/* Volume 0-255		*/
-	uint32		pan;		/* Pan 0-255		*/
-	uint32		pos;		/* Sample playback pos	*/
-	uint32		pad[5];		/* Padding		*/
+	uint32_t		cmd;		/* Command ID		*/
+	uint32_t		base;		/* Sample base in RAM	*/
+	uint32_t		type;		/* (8/16bit/ADPCM)	*/
+	uint32_t		length;		/* Sample length	*/
+	uint32_t		loop;		/* Sample looping	*/
+	uint32_t		loopstart;	/* Sample loop start	*/
+	uint32_t		loopend;	/* Sample loop end	*/
+	uint32_t		freq;		/* Frequency		*/
+	uint32_t		vol;		/* Volume 0-255		*/
+	uint32_t		pan;		/* Pan 0-255		*/
+	uint32_t		pos;		/* Sample playback pos	*/
+	uint32_t		pad[5];		/* Padding		*/
 } aica_channel_t;
 
 /* Declare an aica_cmd_t big enough to hold an aica_channel_t
    using temp name T, aica_cmd_t name CMDR, and aica_channel_t name CHANR */
 #define AICA_CMDSTR_CHANNEL(T, CMDR, CHANR) \
-	uint8	T[sizeof(aica_cmd_t) + sizeof(aica_channel_t)]; \
+	uint8_t	T[sizeof(aica_cmd_t) + sizeof(aica_channel_t)]; \
 	aica_cmd_t	* CMDR = (aica_cmd_t *)T; \
 	aica_channel_t	* CHANR = (aica_channel_t *)(CMDR->cmd_data);
 #define AICA_CMDSTR_CHANNEL_SIZE	((sizeof(aica_cmd_t) + sizeof(aica_channel_t))/4)

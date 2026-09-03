@@ -14,11 +14,11 @@
 /* Get current hardware timing using arch/timer.h */
 int dc_get_time()
 {
-    uint32 s, ms;
-	uint64 msec;
+    uint32_t s, ms;
+	uint64_t msec;
 
 	timer_ms_gettime(&s, &ms);
-	msec = (((uint64)s) * ((uint64)1000)) + ((uint64)ms);
+	msec = (((uint64_t)s) * ((uint64_t)1000)) + ((uint64_t)ms);
 
 	return (int)msec;
 }
