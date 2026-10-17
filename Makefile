@@ -10,15 +10,17 @@ KOS_CFLAGS += -I. -Ilibdcmc/
 OBJS += libdcmc/roq_audio.o
 OBJS += libdcmc/snddrv.o
 
-all: rm-elf $(TARGET)
+# Install location (defaults to the KOS addons tree).
+PREFIX     ?= $(KOS_BASE)/addons
+INCLUDEDIR ?= $(PREFIX)/include/dreamroq
+LIBDIR     ?= $(PREFIX)/lib/$(KOS_ARCH)
 
-rm-elf:
-	-rm -f $(TARGET)
+all: build
 
 clean:
 	-rm -f $(TARGET) $(OBJS) output.bin
 
-link:
+link: $(OBJS)
 	$(KOS_AR) rcs $(TARGET) $(OBJS)
 
 build: $(OBJS) link
@@ -26,11 +28,13 @@ build: $(OBJS) link
 samples: build
 	$(KOS_MAKE) -C samples all
 
-defaultall: create_kos_link $(OBJS) subdirs linklib samples
-	
-include $(KOS_BASE)/Makefile.rules
-include $(KOS_BASE)/addons/Makefile.prefab
+install: build
+	mkdir -p $(INCLUDEDIR) $(LIBDIR)
+	cp -v include/*.h $(INCLUDEDIR)/
+	cp -v $(TARGET) $(LIBDIR)/
 
-create_kos_link:
-	rm -f $(KOS_BASE)/include/dreamroq
-	ln -s $(CURDIR)/include $(KOS_BASE)/include/dreamroq
+uninstall:
+	rm -rf $(INCLUDEDIR)
+	rm -f $(LIBDIR)/$(TARGET)
+
+include $(KOS_BASE)/Makefile.rules

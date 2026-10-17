@@ -32,14 +32,22 @@ the specific text in LICENSE.KOS.
 
 
 ## Building the library
-Make sure you clone this this directory
-`$(KOS_BASE)/addons`
+You can clone this repository anywhere; the build only requires a working
+KallistiOS installation (`$(KOS_BASE)`).
 
 Then, inside the libdreamroq folder, simply type
-`make defaultall`
+`make`
 
-You'll be able to link the library using
- `-ldreamroq`
+To install the static library and headers into your KOS tree, type
+`make install`
+
+This copies `include/dreamroqlib.h` to
+`$(KOS_BASE)/addons/include/dreamroq/` and `libdreamroq.a` to
+`$(KOS_BASE)/addons/lib/dreamcast/`. Use `make uninstall` to remove them, or
+override the destination with `PREFIX` (defaults to `$(KOS_BASE)/addons`).
+
+You'll be able to include and link the library using
+ `#include <dreamroq/dreamroqlib.h>` and `-ldreamroq`
 
 There is a very simple exemple in the samples folder.
 
