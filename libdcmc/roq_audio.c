@@ -449,7 +449,6 @@ static void dma_chain(ptr_t data) {
 /* Poll streamer to load more data if neccessary */
 int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd) {
 	uint32_t		ch0pos, ch1pos;
-	int		realbuffer;
 	int		current_play_pos;
 	int		needed_samples;
 	int		got_samples;
@@ -467,8 +466,6 @@ int roq_snd_stream_poll(roq_snd_stream_hnd_t hnd) {
 		dbglog(DBG_ERROR, "roq_snd_stream_poll: chan0(%d).pos = %ld (%08lx)\n", streams[hnd].ch[0], ch0pos, ch0pos);
 		return -1;
 	}
-
-	realbuffer = !((ch0pos < (streams[hnd].buffer_size/4)) && (ch1pos < (streams[hnd].buffer_size/4)));
 
 	current_play_pos = (ch0pos < ch1pos)?(ch0pos):(ch1pos);
 
