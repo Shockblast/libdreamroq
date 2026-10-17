@@ -1,32 +1,35 @@
-# Put the filename of the output binary here
-TARGET = libdreamroq.a
+# Output library and object files live under build/
+TARGET = build/libdreamroq.a
+BUILD  = build
 
-# List all of your C files here, but change the extension to ".o"
-OBJS = dreamroq-player.o dreamroqlib.o
-OBJS += libdcmc/timer.o
+# List all of your C files here
+SRCS  = dreamroq-player.c dreamroqlib.c
+SRCS += libdcmc/timer.c
+SRCS += libdcmc/roq_audio.c
+SRCS += libdcmc/snddrv.c
 
 #AICA Audio Driver
 KOS_CFLAGS += -I. -Ilibdcmc/
-OBJS += libdcmc/roq_audio.o
-OBJS += libdcmc/snddrv.o
+
+OBJS = $(SRCS:%.c=$(BUILD)/%.o)
 
 # Install location (defaults to the KOS addons tree).
 PREFIX     ?= $(KOS_BASE)/addons
 INCLUDEDIR ?= $(PREFIX)/include/dreamroq
 LIBDIR     ?= $(PREFIX)/lib/$(KOS_ARCH)
 
+.PHONY: all build install uninstall samples clean
+
 all: build
 
-clean:
-	-rm -f $(TARGET) $(OBJS) output.bin
+$(BUILD)/%.o: %.c
+	@mkdir -p $(@D)
+	kos-cc $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-link: $(OBJS)
-	$(KOS_AR) rcs $(TARGET) $(OBJS)
+$(TARGET): $(OBJS)
+	$(KOS_AR) rcs $@ $(OBJS)
 
-build: $(OBJS) link
-
-samples: build
-	$(KOS_MAKE) -C samples all
+build: $(TARGET)
 
 install: build
 	mkdir -p $(INCLUDEDIR) $(LIBDIR)
@@ -35,6 +38,12 @@ install: build
 
 uninstall:
 	rm -rf $(INCLUDEDIR)
-	rm -f $(LIBDIR)/$(TARGET)
+	rm -f $(LIBDIR)/libdreamroq.a
+
+samples: install
+	$(KOS_MAKE) -C samples all
+
+clean:
+	-rm -rf $(BUILD) output.bin
 
 include $(KOS_BASE)/Makefile.rules

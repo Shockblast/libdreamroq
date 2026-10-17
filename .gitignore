@@ -2,5 +2,6 @@
 *.a
 *.elf
 *.img
+build/
 romdisk/
 .vscode/
