@@ -376,6 +376,11 @@ int roq_play(char *filename, int loop, render_callback render_cb,
     int i, snd_left, snd_right;
     int frameCount = 0;
 
+    /* Frame buffers must start NULL: playback can end before the INFO
+     * chunk (instant quit, empty/truncated file) and the tail below
+     * frees them unconditionally. */
+    memset(&state, 0, sizeof(state));
+
     f = fopen(filename, "rb");
     if (!f)
         return ROQ_FILE_OPEN_FAILURE;
@@ -499,6 +504,10 @@ int roq_play(char *filename, int loop, render_callback render_cb,
             {
                 free (state.frame[0]);
                 free (state.frame[1]);
+                /* The tail below frees both buffers again: clear them
+                 * here so the NO_MEMORY exit doesn't double-free. */
+                state.frame[0] = NULL;
+                state.frame[1] = NULL;
                 status = ROQ_NO_MEMORY;
                 break;
             }
